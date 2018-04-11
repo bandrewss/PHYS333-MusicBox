@@ -12,9 +12,8 @@ will output music until power is lost, or until a tragic memory leak forces a
 restart. Songs will be repeated until the user changes the song.
 
 #### Data In:
-There will be 2 knobs. One will change the current looping song. The other will
-change the current beats per minute (BPM). These knobs may be substituted for
-buttons, to be determined.
+There will be 2 buttons. One will change the current looping song. The other will
+change the current beats per minute (BPM).
 
 #### Data Out:
 There will be a data line to a speaker to create tones with a modified PWM.
@@ -22,7 +21,7 @@ There will also be an LCD display to show the current song and BPM.
 
 #### Computation and Control:
 There will be several songs hard coded into the firmware. Each time the song
-select knob is turned a CPU interrupt will be handled to switch the current
+select button is pressed a CPU interrupt will be handled to switch the current
 playing song without waiting for song completion. Each time the BPM is changed
 an interrupt will be handled to update the length of every note and rest before
 picking the song up where it was interrupted.
