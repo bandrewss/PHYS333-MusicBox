@@ -6,9 +6,15 @@
 
 #define SPEAKER_PIN 13
 
+
+
 void setup() 
 {
+    Serial.begin(9600);
+    
     pinMode(SPEAKER_PIN, OUTPUT);
+
+    set_bpm(120);
 }
 
 int selector = 0;
@@ -26,6 +32,60 @@ void loop()
             star_wars();
             break;
     }
+
+    REST(WREST);
+    selector = ++selector % 3;
+}
+
+
+// set the duration of notes and rests based on given beats per minute
+void set_bpm(int bpm)
+{
+    int bps = bpm / 60;
+    long whole_note_micro = bps * 1000000 / 4;
+
+    //long whole_note_micro = 1000000;
+
+    Serial.println(whole_note_micro);
+
+    // notes
+    WNOTE = whole_note_micro;
+    HNOTE = (WNOTE /2);
+    QNOTE = (WNOTE /4);
+    ENOTE = (WNOTE /8);
+    SNOTE = (WNOTE /16);
+    
+    DHNOTE = (HNOTE + QNOTE);
+    DQNOTE = (QNOTE + ENOTE);
+    DENOTE = (ENOTE + SNOTE);
+    
+    TRIPLT = (QNOTE / 3);
+    
+    // rests
+    WREST = WNOTE /1000;
+    HREST = HNOTE /1000;
+    QREST = QNOTE /1000;
+    EREST = ENOTE /1000;
+    SREST = SNOTE /1000;
+}
+
+
+// play a note specified in the header file
+long i;
+void play_note(int pin, long note, long dur)
+{
+    dur /= note;
+
+    for(i = 0; i < dur; ++i)
+    {
+        digitalWrite(pin, HIGH);
+        delayMicroseconds(note);
+    
+        digitalWrite(pin, LOW);
+        delayMicroseconds(note);
+    }
+
+    delay(6); // put some seperation between notes
 }
 
 
@@ -39,10 +99,6 @@ void c_scale()
     play_note(SPEAKER_PIN, G4, HNOTE);
     play_note(SPEAKER_PIN, A4, HNOTE);
     play_note(SPEAKER_PIN, B4, HNOTE);
-    play_note(SPEAKER_PIN, C5, HNOTE);
-
-    QREST 
-
     play_note(SPEAKER_PIN, C5, HNOTE);
     play_note(SPEAKER_PIN, B4, HNOTE);
     play_note(SPEAKER_PIN, A4, HNOTE);
@@ -205,7 +261,7 @@ void star_wars()
     play_note(SPEAKER_PIN, G4, ENOTE);
 
     play_note(SPEAKER_PIN, FS4, HNOTE); // 16
-    QREST
+    REST(QREST)
     play_note(SPEAKER_PIN, D4, TRIPLT);
     play_note(SPEAKER_PIN, D4, TRIPLT);
     play_note(SPEAKER_PIN, D4, TRIPLT);
@@ -269,23 +325,4 @@ void star_wars()
     play_note(SPEAKER_PIN, G4, TRIPLT);
     play_note(SPEAKER_PIN, G4, TRIPLT);
     play_note(SPEAKER_PIN, G4, QNOTE);
-}
-
-
-// play a note specified in the header file
-long i;
-void play_note(int pin, long note, long dur)
-{
-    dur /= note;
-
-    for(i = 0; i < dur; ++i)
-    {
-        digitalWrite(pin, HIGH);
-        delayMicroseconds(note);
-    
-        digitalWrite(pin, LOW);
-        delayMicroseconds(note);
-    }
-
-    delay(6); // put some seperation between notes
 }
