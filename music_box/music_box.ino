@@ -2,24 +2,52 @@
 // PHYS333 Final Project: Music Box
 // 2018-4-10
 
+#include <setjmp.h>
 #include "music_box.h"
 
 #define SPEAKER_PIN 13
+#define SNG_SEL_PIN 2
+#define BPM_SEL_PIN 3
 
+static jmp_buf jump_buffer;
 
+static int selector = 0;
 
 void setup() 
 {
     Serial.begin(9600);
     
     pinMode(SPEAKER_PIN, OUTPUT);
+    
+    pinMode(SNG_SEL_PIN, INPUT);
+    attachInterrupt(digitalPinToInterrupt(SNG_SEL_PIN), change_song, RISING);
 
-    set_bpm(120);
+    set_bpm(140);
 }
 
-int selector = 0;
+void change_song()
+{
+    Serial.println("\nchanging the song");
+    
+    selector = ++selector % 3;
+    longjmp(jump_buffer, 1);
+}
+
+
 void loop() 
 {
+    if(setjmp(jump_buffer))
+    {
+        Serial.println("returning from longjump");
+        return;
+    }
+    else
+    {
+        Serial.println("set the jmp buffer");
+    }
+    
+    Serial.println("top of the loop");
+    
     switch(selector)
     {
         case 0:
@@ -34,15 +62,17 @@ void loop()
     }
 
     REST(WREST);
-    selector = ++selector % 3;
 }
 
 
 // set the duration of notes and rests based on given beats per minute
 void set_bpm(int bpm)
 {
-    int bps = bpm / 60;
-    long whole_note_micro = bps * 1000000 / 4;
+    float bps = bpm / 60.0;
+
+    float whole_notes_per_second = 4.0 / bps;
+    
+    long whole_note_micro = 1000000 * whole_notes_per_second;
 
     //long whole_note_micro = 1000000;
 
@@ -70,11 +100,11 @@ void set_bpm(int bpm)
 }
 
 
-// play a note specified in the header file
+// play a note based on the frequncy given in Hz, for duration given in microseconds
 long i;
 void play_note(int pin, long note, long dur)
 {
-    dur /= note;
+    dur /= note * 2;
 
     for(i = 0; i < dur; ++i)
     {
