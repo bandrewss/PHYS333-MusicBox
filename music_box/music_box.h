@@ -88,13 +88,37 @@
 #define G5  SCALER ( 783 ))
 #define GS5 SCALER ( 830 ))
 #define AF5 GS5
+#define A5  SCALER ( 880 ))
+#define AS5 SCALER ( 932 ))
+#define BF5 AS4
+#define B5  SCALER ( 988 ))
+
+
+#define C6  SCALER ( 1047 ))     // soprano C
+#define CS6 SCALER ( 1109 ))
+#define DF6 CS6
+#define D6  SCALER ( 1175 ))
+#define DS6 SCALER ( 1245 ))
+#define EF6 DS6
+#define E6  SCALER ( 1319 ))
+#define F6  SCALER ( 1397 ))
+#define FS6 SCALER ( 1480 ))
+#define GF6 FS6
+#define G6  SCALER ( 1568 ))
+#define GS6 SCALER ( 1661 ))
+#define AF6 GS6
+#define A6  SCALER ( 1760 ))
+#define AS6 SCALER ( 1865 ))
+#define BF6 AS4
+#define B6  SCALER ( 1975 ))
+
 
 // note lengths
 volatile int bpm_sel = 0;
 int const bpms[] = {60, 120, 240};
 const int num_bpms = sizeof(bpms) / sizeof(int);
 
-long volatile note_dur[14];
+long volatile note_dur[15];
 
 #define WNOTE note_dur[0]
 #define HNOTE note_dur[1]
