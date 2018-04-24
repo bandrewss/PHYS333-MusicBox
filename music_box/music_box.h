@@ -42,8 +42,11 @@
 #define AF5 GS5
 
 // note lengths
-int bpm;
-long note_dur[14];
+volatile int bpm_sel = 0;
+int bpms[] = {60, 120, 240};
+const int num_bpms = sizeof(bpms) / sizeof(int);
+
+long volatile note_dur[14];
 
 #define WNOTE note_dur[0]
 #define HNOTE note_dur[1]

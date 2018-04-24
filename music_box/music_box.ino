@@ -5,11 +5,16 @@
 #include <setjmp.h>
 #include "music_box.h"
 
+#define DEBOUNCE_TIME (200)
+
 #define SPEAKER_PIN 13
 #define SNG_SEL_PIN 2
 #define BPM_SEL_PIN 3
 
 static jmp_buf jump_buffer;
+
+static volatile long time_pressed_sng = 0;
+static volatile long time_pressed_bpm = 0;
 
 static int selector = 0;
 
@@ -22,20 +27,49 @@ void setup()
     pinMode(SNG_SEL_PIN, INPUT);
     attachInterrupt(digitalPinToInterrupt(SNG_SEL_PIN), change_song, RISING);
 
-    set_bpm(140);
+    pinMode(BPM_SEL_PIN, INPUT);
+    attachInterrupt(digitalPinToInterrupt(BPM_SEL_PIN), cycle_bpm, RISING);
+
+    set_bpm(bpms[bpm_sel]);
 }
 
+
+// change the song selector to the next song, return to setjmp
 void change_song()
-{
-    Serial.println("\nchanging the song");
+{    
+    if(millis() - time_pressed_sng < DEBOUNCE_TIME)
+        return;
+
+    time_pressed_sng = millis();
     
-    selector = ++selector % 3;
+    //Serial.println("\nchanging the song");
+
+    ++selector;
+    selector %= 3;
+    
     longjmp(jump_buffer, 1);
+}
+
+
+// cycle the bpm
+void cycle_bpm()
+{
+    if(millis() - time_pressed_bpm < DEBOUNCE_TIME)
+        return;
+
+    time_pressed_bpm = millis();
+
+    ++bpm_sel;
+    bpm_sel %=  num_bpms;
+
+    set_bpm(bpms[bpm_sel]);
 }
 
 
 void loop() 
 {
+    setjmp(jump_buffer);
+    /*
     if(setjmp(jump_buffer))
     {
         Serial.println("returning from longjump");
@@ -45,6 +79,7 @@ void loop()
     {
         Serial.println("set the jmp buffer");
     }
+    */
     
     Serial.println("top of the loop");
     
