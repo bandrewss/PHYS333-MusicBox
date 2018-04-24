@@ -16,7 +16,7 @@ static jmp_buf jump_buffer;
 static volatile long time_pressed_sng = 0;
 static volatile long time_pressed_bpm = 0;
 
-static int selector = 0;
+static volatile int selector = 0;
 
 void setup() 
 {
