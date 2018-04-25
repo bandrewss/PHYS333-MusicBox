@@ -10,6 +10,8 @@
 
 #define DEBOUNCE_TIME (200)
 
+#define LCD_BLANK_LINE ("                ")
+
 #define SPEAKER_PIN 13
 #define SNG_SEL_PIN 2
 #define BPM_SEL_PIN 3
@@ -143,6 +145,9 @@ void set_bpm(int bpm)
 void set_lcd_bpm(int bpm)
 {
     lcd.setCursor(0, 1);
+    lcd.print(LCD_BLANK_LINE);
+
+    lcd.setCursor(0, 1);
     lcd.print("BPM: ");
     lcd.print(bpm);
 }
@@ -151,6 +156,9 @@ void set_lcd_bpm(int bpm)
 // set the song title that the lcd is displaying
 void set_lcd_song(char *song)
 {
+    lcd.setCursor(0, 0);
+    lcd.print(LCD_BLANK_LINE);
+
     lcd.setCursor(0, 0);
     lcd.print(song);
 }
