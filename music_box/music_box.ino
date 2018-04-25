@@ -54,7 +54,7 @@ void change_song()
     time_pressed_sng = millis();
 
     ++selector;
-    selector %= 3;
+    selector %= 4; // mod by the number of songs
     
     longjmp(jump_buffer, 1);
 }
