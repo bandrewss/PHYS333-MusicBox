@@ -16,7 +16,8 @@
 #define SNG_SEL_PIN 2
 #define BPM_SEL_PIN 3
 
-static jmp_buf jump_buffer;
+static jmp_buf loop_jmp_buf;
+static jmp_buf note_jmp_buf;
 
 static volatile long time_pressed_sng = 0;
 static volatile long time_pressed_bpm = 0;
@@ -41,7 +42,8 @@ void setup()
     lcd.backlight();
     lcd.clear();
 
-     set_bpm(bpms[bpm_sel]);
+    set_bpm(bpms[bpm_sel]);
+    set_lcd_bpm(bpms[bpm_sel]);
 }
 
 
@@ -56,7 +58,7 @@ void change_song()
     ++selector;
     selector %= 4; // mod by the number of songs
     
-    longjmp(jump_buffer, 1);
+    longjmp(loop_jmp_buf , 1);
 }
 
 
@@ -69,15 +71,17 @@ void cycle_bpm()
     time_pressed_bpm = millis();
 
     ++bpm_sel;
-    bpm_sel %=  num_bpms;
+    bpm_sel %= num_bpms;
 
     set_bpm(bpms[bpm_sel]);
+
+    longjmp(note_jmp_buf, 1);
 }
 
 
 void loop() 
 {
-    setjmp(jump_buffer);
+    setjmp(loop_jmp_buf);
     
     Serial.println("top of the loop");
     
@@ -114,11 +118,6 @@ void set_bpm(int bpm)
     
     long whole_note_micro = 1000000 * whole_notes_per_second;
 
-    //long whole_note_micro = 1000000;
-
-    Serial.println(whole_note_micro);
-    set_lcd_bpm(bpm);
-
     // notes
     WNOTE = whole_note_micro;
     HNOTE = (WNOTE /2);
@@ -143,7 +142,7 @@ void set_bpm(int bpm)
 
 // set the bpm the lcd is displaying
 void set_lcd_bpm(int bpm)
-{
+{    
     lcd.setCursor(0, 1);
     lcd.print(LCD_BLANK_LINE);
 
@@ -154,8 +153,8 @@ void set_lcd_bpm(int bpm)
 
 
 // set the song title that the lcd is displaying
-void set_lcd_song(char *song)
-{
+void set_lcd_song(const char *song)
+{    
     lcd.setCursor(0, 0);
     lcd.print(LCD_BLANK_LINE);
 
@@ -169,6 +168,9 @@ long i;
 void play_note(int pin, long note, long dur)
 {
     dur /= note * 2;
+
+    if(setjmp(note_jmp_buf))
+        set_lcd_bpm(bpms[bpm_sel]);
 
     for(i = 0; i < dur; ++i)
     {
@@ -186,21 +188,21 @@ void play_note(int pin, long note, long dur)
 // play the c scale, pun intended
 void c_scale()
 {
-    play_note(SPEAKER_PIN, C4, HNOTE);
-    play_note(SPEAKER_PIN, D4, HNOTE);
-    play_note(SPEAKER_PIN, E4, HNOTE);
-    play_note(SPEAKER_PIN, F4, HNOTE);
-    play_note(SPEAKER_PIN, G4, HNOTE);
-    play_note(SPEAKER_PIN, A4, HNOTE);
-    play_note(SPEAKER_PIN, B4, HNOTE);
-    play_note(SPEAKER_PIN, C5, HNOTE);
-    play_note(SPEAKER_PIN, B4, HNOTE);
-    play_note(SPEAKER_PIN, A4, HNOTE);
-    play_note(SPEAKER_PIN, G4, HNOTE);
-    play_note(SPEAKER_PIN, F4, HNOTE);
-    play_note(SPEAKER_PIN, E4, HNOTE);
-    play_note(SPEAKER_PIN, D4, HNOTE);
-    play_note(SPEAKER_PIN, C4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_C4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_E4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_F4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_B4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_B4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_F4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_E4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_C4, HNOTE);
 }
 
 
@@ -209,40 +211,40 @@ void happy_birthday()
 {
     // 3/4
     // key: F Major
-    play_note(SPEAKER_PIN, C4, DENOTE); // hap
-    play_note(SPEAKER_PIN, C4, SNOTE); // py
+    play_note(SPEAKER_PIN, NOTE_C4, DENOTE); // hap
+    play_note(SPEAKER_PIN, NOTE_C4, SNOTE); // py
 
-    play_note(SPEAKER_PIN, D4, QNOTE); // birth
-    play_note(SPEAKER_PIN, C4, QNOTE); // day
-    play_note(SPEAKER_PIN, F4, QNOTE); // to
+    play_note(SPEAKER_PIN, NOTE_D4, QNOTE); // birth
+    play_note(SPEAKER_PIN, NOTE_C4, QNOTE); // day
+    play_note(SPEAKER_PIN, NOTE_F4, QNOTE); // to
     
-    play_note(SPEAKER_PIN, E4, HNOTE); // you
-    play_note(SPEAKER_PIN, C4, DENOTE); // hap
-    play_note(SPEAKER_PIN, C4, SNOTE); // py
+    play_note(SPEAKER_PIN, NOTE_E4, HNOTE); // you
+    play_note(SPEAKER_PIN, NOTE_C4, DENOTE); // hap
+    play_note(SPEAKER_PIN, NOTE_C4, SNOTE); // py
 
-    play_note(SPEAKER_PIN, D4, QNOTE); // birth 
-    play_note(SPEAKER_PIN, C4, QNOTE); // day
-    play_note(SPEAKER_PIN, G4, QNOTE); // to
+    play_note(SPEAKER_PIN, NOTE_D4, QNOTE); // birth 
+    play_note(SPEAKER_PIN, NOTE_C4, QNOTE); // day
+    play_note(SPEAKER_PIN, NOTE_G4, QNOTE); // to
     
-    play_note(SPEAKER_PIN, F4, HNOTE); // you
-    play_note(SPEAKER_PIN, C4, DENOTE); // hap
-    play_note(SPEAKER_PIN, C4, SNOTE); // py
+    play_note(SPEAKER_PIN, NOTE_F4, HNOTE); // you
+    play_note(SPEAKER_PIN, NOTE_C4, DENOTE); // hap
+    play_note(SPEAKER_PIN, NOTE_C4, SNOTE); // py
 
-    play_note(SPEAKER_PIN, C5, QNOTE); // birth
-    play_note(SPEAKER_PIN, A4, QNOTE); // day
-    play_note(SPEAKER_PIN, F4, QNOTE); // dear
+    play_note(SPEAKER_PIN, NOTE_C5, QNOTE); // birth
+    play_note(SPEAKER_PIN, NOTE_A4, QNOTE); // day
+    play_note(SPEAKER_PIN, NOTE_F4, QNOTE); // dear
 
-    play_note(SPEAKER_PIN, E4, QNOTE); //Na
-    play_note(SPEAKER_PIN, D4, DHNOTE); //than -fermata
+    play_note(SPEAKER_PIN, NOTE_E4, QNOTE); //Na
+    play_note(SPEAKER_PIN, NOTE_D4, DHNOTE); //than -fermata
 
-    play_note(SPEAKER_PIN, BF4, DENOTE); // hap
-    play_note(SPEAKER_PIN, BF4, SNOTE); // py
+    play_note(SPEAKER_PIN, NOTE_BF4, DENOTE); // hap
+    play_note(SPEAKER_PIN, NOTE_BF4, SNOTE); // py
 
-    play_note(SPEAKER_PIN, A4, QNOTE); // birth
-    play_note(SPEAKER_PIN, F4, QNOTE); // day
-    play_note(SPEAKER_PIN, G4, QNOTE); // to
+    play_note(SPEAKER_PIN, NOTE_A4, QNOTE); // birth
+    play_note(SPEAKER_PIN, NOTE_F4, QNOTE); // day
+    play_note(SPEAKER_PIN, NOTE_G4, QNOTE); // to
 
-    play_note(SPEAKER_PIN, F4, HNOTE); // you
+    play_note(SPEAKER_PIN, NOTE_F4, HNOTE); // you
 }
 
 
@@ -251,174 +253,174 @@ void star_wars()
 {
     // 4/4
     // G Major
-    play_note(SPEAKER_PIN, D4, TRIPLT); // 0
-    play_note(SPEAKER_PIN, D4, TRIPLT);
-    play_note(SPEAKER_PIN, D4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_D4, TRIPLT); // 0
+    play_note(SPEAKER_PIN, NOTE_D4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_D4, TRIPLT);
     
-    play_note(SPEAKER_PIN, G4, HNOTE); // 1
-    play_note(SPEAKER_PIN, D5, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, HNOTE); // 1
+    play_note(SPEAKER_PIN, NOTE_D5, HNOTE);
     
-    play_note(SPEAKER_PIN, C5, TRIPLT); // 2
-    play_note(SPEAKER_PIN, B4, TRIPLT);
-    play_note(SPEAKER_PIN, A4, TRIPLT);
-    play_note(SPEAKER_PIN, G5, HNOTE);
-    play_note(SPEAKER_PIN, D5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, TRIPLT); // 2
+    play_note(SPEAKER_PIN, NOTE_B4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_A4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_G5, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, QNOTE);
     
-    play_note(SPEAKER_PIN, C5, TRIPLT); // 3
-    play_note(SPEAKER_PIN, B4, TRIPLT);
-    play_note(SPEAKER_PIN, A4, TRIPLT);
-    play_note(SPEAKER_PIN, G5, HNOTE);
-    play_note(SPEAKER_PIN, D5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, TRIPLT); // 3
+    play_note(SPEAKER_PIN, NOTE_B4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_A4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_G5, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, QNOTE);
     
-    play_note(SPEAKER_PIN, C5, TRIPLT); // 4
-    play_note(SPEAKER_PIN, B4, TRIPLT);
-    play_note(SPEAKER_PIN, C5, TRIPLT);
-    play_note(SPEAKER_PIN, A4, HNOTE);
-    play_note(SPEAKER_PIN, D4, TRIPLT);
-    play_note(SPEAKER_PIN, D4, TRIPLT);
-    play_note(SPEAKER_PIN, D4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_C5, TRIPLT); // 4
+    play_note(SPEAKER_PIN, NOTE_B4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_C5, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_A4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_D4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_D4, TRIPLT);
     
-    play_note(SPEAKER_PIN, G4, HNOTE); // 5
-    play_note(SPEAKER_PIN, D5, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, HNOTE); // 5
+    play_note(SPEAKER_PIN, NOTE_D5, HNOTE);
     
-    play_note(SPEAKER_PIN, C5, TRIPLT); // 6
-    play_note(SPEAKER_PIN, B4, TRIPLT);
-    play_note(SPEAKER_PIN, A4, TRIPLT);
-    play_note(SPEAKER_PIN, G5, HNOTE);
-    play_note(SPEAKER_PIN, D5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, TRIPLT); // 6
+    play_note(SPEAKER_PIN, NOTE_B4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_A4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_G5, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, QNOTE);
     
-    play_note(SPEAKER_PIN, C5, TRIPLT); // 7
-    play_note(SPEAKER_PIN, B4, TRIPLT);
-    play_note(SPEAKER_PIN, A4, TRIPLT);
-    play_note(SPEAKER_PIN, G5, HNOTE);
-    play_note(SPEAKER_PIN, D5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, TRIPLT); // 7
+    play_note(SPEAKER_PIN, NOTE_B4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_A4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_G5, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, QNOTE);
     
-    play_note(SPEAKER_PIN, C5, TRIPLT); // 8
-    play_note(SPEAKER_PIN, B4, TRIPLT);
-    play_note(SPEAKER_PIN, C5, TRIPLT);
-    play_note(SPEAKER_PIN, A4, HNOTE);
-    play_note(SPEAKER_PIN, D4, DENOTE);
-    play_note(SPEAKER_PIN, D4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, TRIPLT); // 8
+    play_note(SPEAKER_PIN, NOTE_B4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_C5, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_A4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, DENOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, SNOTE);
     
-    play_note(SPEAKER_PIN, E4, DQNOTE); // 9
-    play_note(SPEAKER_PIN, E4, ENOTE);
-    play_note(SPEAKER_PIN, C5, ENOTE);
-    play_note(SPEAKER_PIN, B4, ENOTE);
-    play_note(SPEAKER_PIN, A4, ENOTE);
-    play_note(SPEAKER_PIN, G4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E4, DQNOTE); // 9
+    play_note(SPEAKER_PIN, NOTE_E4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_B4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, ENOTE);
     
-    play_note(SPEAKER_PIN, G4, TRIPLT); // 10
-    play_note(SPEAKER_PIN, A4, TRIPLT);
-    play_note(SPEAKER_PIN, B4, TRIPLT);
-    play_note(SPEAKER_PIN, A4, ENOTE);
-    play_note(SPEAKER_PIN, E4, ENOTE);
-    play_note(SPEAKER_PIN, FS4, QNOTE);
-    play_note(SPEAKER_PIN, D4, DENOTE);
-    play_note(SPEAKER_PIN, D4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, TRIPLT); // 10
+    play_note(SPEAKER_PIN, NOTE_A4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_B4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_FS4, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, DENOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, SNOTE);
     
-    play_note(SPEAKER_PIN, E4, DQNOTE); // 11
-    play_note(SPEAKER_PIN, E4, ENOTE);
-    play_note(SPEAKER_PIN, C5, ENOTE);
-    play_note(SPEAKER_PIN, B4, ENOTE);
-    play_note(SPEAKER_PIN, A4, ENOTE);
-    play_note(SPEAKER_PIN, G4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E4, DQNOTE); // 11
+    play_note(SPEAKER_PIN, NOTE_E4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_B4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, ENOTE);
     
-    play_note(SPEAKER_PIN, D5, DQNOTE); // 12
-    play_note(SPEAKER_PIN, A4, ENOTE);  
-    play_note(SPEAKER_PIN, FS4, QNOTE);
-    play_note(SPEAKER_PIN, D4, DENOTE);
-    play_note(SPEAKER_PIN, D4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, DQNOTE); // 12
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);  
+    play_note(SPEAKER_PIN, NOTE_FS4, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, DENOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, SNOTE);
 
-    play_note(SPEAKER_PIN, E4, DQNOTE); // 13
-    play_note(SPEAKER_PIN, E4, ENOTE);
-    play_note(SPEAKER_PIN, C5, ENOTE);
-    play_note(SPEAKER_PIN, B4, ENOTE);
-    play_note(SPEAKER_PIN, A4, ENOTE);
-    play_note(SPEAKER_PIN, G4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E4, DQNOTE); // 13
+    play_note(SPEAKER_PIN, NOTE_E4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_B4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, ENOTE);
 
-    play_note(SPEAKER_PIN, G4, TRIPLT); // 14
-    play_note(SPEAKER_PIN, A4, TRIPLT);
-    play_note(SPEAKER_PIN, B4, TRIPLT);
-    play_note(SPEAKER_PIN, A4, ENOTE);
-    play_note(SPEAKER_PIN, E4, ENOTE);
-    play_note(SPEAKER_PIN, FS4, QNOTE);
-    play_note(SPEAKER_PIN, D5, DENOTE);
-    play_note(SPEAKER_PIN, D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, TRIPLT); // 14
+    play_note(SPEAKER_PIN, NOTE_A4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_B4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_FS4, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, DENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
 
-    play_note(SPEAKER_PIN, G5, ENOTE); // 15
-    play_note(SPEAKER_PIN, F5, ENOTE);
-    play_note(SPEAKER_PIN, EF5, ENOTE);
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, C5, ENOTE);
-    play_note(SPEAKER_PIN, BF4, ENOTE);
-    play_note(SPEAKER_PIN, A4, ENOTE);
-    play_note(SPEAKER_PIN, G4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, ENOTE); // 15
+    play_note(SPEAKER_PIN, NOTE_F5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_EF5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, ENOTE);
 
-    play_note(SPEAKER_PIN, FS4, HNOTE); // 16
+    play_note(SPEAKER_PIN, NOTE_FS4, HNOTE); // 16
     REST(QREST)
-    play_note(SPEAKER_PIN, D4, TRIPLT);
-    play_note(SPEAKER_PIN, D4, TRIPLT);
-    play_note(SPEAKER_PIN, D4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_D4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_D4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_D4, TRIPLT);
 
-    play_note(SPEAKER_PIN, G4, HNOTE); // 17
-    play_note(SPEAKER_PIN, D5, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, HNOTE); // 17
+    play_note(SPEAKER_PIN, NOTE_D5, HNOTE);
 
-    play_note(SPEAKER_PIN, C5, TRIPLT); // 18
-    play_note(SPEAKER_PIN, B4, TRIPLT);
-    play_note(SPEAKER_PIN, A4, TRIPLT);
-    play_note(SPEAKER_PIN, G5, HNOTE);
-    play_note(SPEAKER_PIN, D5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, TRIPLT); // 18
+    play_note(SPEAKER_PIN, NOTE_B4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_A4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_G5, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, QNOTE);
 
-    play_note(SPEAKER_PIN, C5, TRIPLT); // 19
-    play_note(SPEAKER_PIN, B4, TRIPLT);
-    play_note(SPEAKER_PIN, A4, TRIPLT);
-    play_note(SPEAKER_PIN, G5, HNOTE);
-    play_note(SPEAKER_PIN, D5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, TRIPLT); // 19
+    play_note(SPEAKER_PIN, NOTE_B4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_A4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_G5, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, QNOTE);
 
-    play_note(SPEAKER_PIN, C5, TRIPLT); // 20
-    play_note(SPEAKER_PIN, B4, TRIPLT);
-    play_note(SPEAKER_PIN, C5, TRIPLT);
-    play_note(SPEAKER_PIN, A4, HNOTE);
-    play_note(SPEAKER_PIN, D4, TRIPLT);
-    play_note(SPEAKER_PIN, D4, TRIPLT);
-    play_note(SPEAKER_PIN, D4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_C5, TRIPLT); // 20
+    play_note(SPEAKER_PIN, NOTE_B4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_C5, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_A4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_D4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_D4, TRIPLT);
 
-    play_note(SPEAKER_PIN, G4, HNOTE); // 21
-    play_note(SPEAKER_PIN, D5, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, HNOTE); // 21
+    play_note(SPEAKER_PIN, NOTE_D5, HNOTE);
 
-    play_note(SPEAKER_PIN, C5, TRIPLT); // 22
-    play_note(SPEAKER_PIN, B4, TRIPLT);
-    play_note(SPEAKER_PIN, A4, TRIPLT);
-    play_note(SPEAKER_PIN, G5, HNOTE);
-    play_note(SPEAKER_PIN, D5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, TRIPLT); // 22
+    play_note(SPEAKER_PIN, NOTE_B4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_A4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_G5, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, QNOTE);
 
-    play_note(SPEAKER_PIN, C5, TRIPLT); // 23
-    play_note(SPEAKER_PIN, B4, TRIPLT);
-    play_note(SPEAKER_PIN, A4, TRIPLT);
-    play_note(SPEAKER_PIN, G5, HNOTE);
-    play_note(SPEAKER_PIN, D5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, TRIPLT); // 23
+    play_note(SPEAKER_PIN, NOTE_B4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_A4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_G5, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, QNOTE);
 
-    play_note(SPEAKER_PIN, C5, TRIPLT); // 24
-    play_note(SPEAKER_PIN, B4, TRIPLT);
-    play_note(SPEAKER_PIN, C5, TRIPLT);
-    play_note(SPEAKER_PIN, A4, HNOTE);
-    play_note(SPEAKER_PIN, D5, DENOTE);
-    play_note(SPEAKER_PIN, D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, TRIPLT); // 24
+    play_note(SPEAKER_PIN, NOTE_B4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_C5, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_A4, HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, DENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
 
-    play_note(SPEAKER_PIN, G5, ENOTE); // 25
-    play_note(SPEAKER_PIN, F5, ENOTE);
-    play_note(SPEAKER_PIN, EF5, ENOTE);
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, C5, ENOTE);
-    play_note(SPEAKER_PIN, BF4, ENOTE);
-    play_note(SPEAKER_PIN, A4, ENOTE);
-    play_note(SPEAKER_PIN, G4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, ENOTE); // 25
+    play_note(SPEAKER_PIN, NOTE_F5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_EF5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, ENOTE);
     
-    play_note(SPEAKER_PIN, D5, QNOTE); // 26
-    play_note(SPEAKER_PIN, G4, TRIPLT);
-    play_note(SPEAKER_PIN, G4, TRIPLT);
-    play_note(SPEAKER_PIN, G4, TRIPLT);
-    play_note(SPEAKER_PIN, G4, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, QNOTE); // 26
+    play_note(SPEAKER_PIN, NOTE_G4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_G4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_G4, TRIPLT);
+    play_note(SPEAKER_PIN, NOTE_G4, QNOTE);
 }
 
 
@@ -427,232 +429,232 @@ void linus_and_lucy()
 {
     // 4/4
     // C
-    play_note(SPEAKER_PIN, C2, ENOTE); // 1
-    play_note(SPEAKER_PIN, G2, ENOTE);
-    play_note(SPEAKER_PIN, C3, ENOTE);
-    play_note(SPEAKER_PIN, C2, ENOTE); 
-    play_note(SPEAKER_PIN, G2, ENOTE);
-    play_note(SPEAKER_PIN, C3, DQNOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); // 1
+    play_note(SPEAKER_PIN, NOTE_G2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C3, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); 
+    play_note(SPEAKER_PIN, NOTE_G2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C3, DQNOTE);
 
-    play_note(SPEAKER_PIN, C2, ENOTE); // 2
-    play_note(SPEAKER_PIN, G2, ENOTE);
-    play_note(SPEAKER_PIN, A2, ENOTE);
-    play_note(SPEAKER_PIN, C2, ENOTE); 
-    play_note(SPEAKER_PIN, G2, ENOTE);
-    play_note(SPEAKER_PIN, A2, DQNOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); // 2
+    play_note(SPEAKER_PIN, NOTE_G2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); 
+    play_note(SPEAKER_PIN, NOTE_G2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A2, DQNOTE);
 
-    play_note(SPEAKER_PIN, C2, ENOTE); // 3
-    play_note(SPEAKER_PIN, G2, ENOTE);
-    play_note(SPEAKER_PIN, C3, ENOTE);
-    play_note(SPEAKER_PIN, C2, ENOTE); 
-    play_note(SPEAKER_PIN, G2, ENOTE);
-    play_note(SPEAKER_PIN, C3, DQNOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); // 3
+    play_note(SPEAKER_PIN, NOTE_G2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C3, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); 
+    play_note(SPEAKER_PIN, NOTE_G2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C3, DQNOTE);
 
-    play_note(SPEAKER_PIN, C2, ENOTE); // 4
-    play_note(SPEAKER_PIN, G2, ENOTE);
-    play_note(SPEAKER_PIN, A2, ENOTE);
-    play_note(SPEAKER_PIN, C2, ENOTE); 
-    play_note(SPEAKER_PIN, G2, ENOTE);
-    play_note(SPEAKER_PIN, A2, DQNOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); // 4
+    play_note(SPEAKER_PIN, NOTE_G2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); 
+    play_note(SPEAKER_PIN, NOTE_G2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A2, DQNOTE);
 
-    play_note(SPEAKER_PIN, C5, ENOTE); // 5
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, E5, QNOTE);
-    play_note(SPEAKER_PIN, E5, ENOTE);
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, C5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE); // 5
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, QNOTE);
 
-    play_note(SPEAKER_PIN, D5, DQNOTE); // 6
-    play_note(SPEAKER_PIN, C5, ENOTE + HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, DQNOTE); // 6
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE + HNOTE);
 
-    play_note(SPEAKER_PIN, C5, ENOTE); // 7
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, E5, QNOTE);
-    play_note(SPEAKER_PIN, E5, HNOTE + WNOTE); // 8
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE); // 7
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, HNOTE + WNOTE); // 8
 
-     play_note(SPEAKER_PIN, C5, ENOTE); // 9
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, E5, QNOTE);
-    play_note(SPEAKER_PIN, E5, ENOTE);
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, C5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE); // 9
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, QNOTE);
 
-    play_note(SPEAKER_PIN, D5, DQNOTE); // 10
-    play_note(SPEAKER_PIN, C5, ENOTE + HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, DQNOTE); // 10
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE + HNOTE);
 
-    play_note(SPEAKER_PIN, C5, DQNOTE); // 11
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, D5, HNOTE + WNOTE); // 12
+    play_note(SPEAKER_PIN, NOTE_C5, DQNOTE); // 11
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, HNOTE + WNOTE); // 12
 
-    play_note(SPEAKER_PIN, C5, DQNOTE); // 13A
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, D5, HNOTE + WNOTE); // 14A
+    play_note(SPEAKER_PIN, NOTE_C5, DQNOTE); // 13A
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, HNOTE + WNOTE); // 14A
 
     // **repeat**
 
-    play_note(SPEAKER_PIN, C5, ENOTE); // 5
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, E5, QNOTE);
-    play_note(SPEAKER_PIN, E5, ENOTE);
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, C5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE); // 5
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, QNOTE);
 
-    play_note(SPEAKER_PIN, D5, DQNOTE); // 6
-    play_note(SPEAKER_PIN, C5, ENOTE + HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, DQNOTE); // 6
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE + HNOTE);
 
-    play_note(SPEAKER_PIN, C5, ENOTE); // 7
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, E5, QNOTE);
-    play_note(SPEAKER_PIN, E5, HNOTE + WNOTE); // 8
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE); // 7
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, HNOTE + WNOTE); // 8
 
-    play_note(SPEAKER_PIN, C5, ENOTE); // 9
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, E5, QNOTE);
-    play_note(SPEAKER_PIN, E5, ENOTE);
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, C5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE); // 9
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, QNOTE);
 
-    play_note(SPEAKER_PIN, D5, DQNOTE); // 10
-    play_note(SPEAKER_PIN, C5, ENOTE + HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, DQNOTE); // 10
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE + HNOTE);
 
-    play_note(SPEAKER_PIN, C5, DQNOTE); // 11
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, D5, HNOTE + WNOTE); // 12
+    play_note(SPEAKER_PIN, NOTE_C5, DQNOTE); // 11
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, HNOTE + WNOTE); // 12
 
-    play_note(SPEAKER_PIN, C5, DQNOTE); // 13B
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, D5, HNOTE + WNOTE); // 14B
+    play_note(SPEAKER_PIN, NOTE_C5, DQNOTE); // 13B
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, HNOTE + WNOTE); // 14B
     
     // end repeat
 
-    play_note(SPEAKER_PIN, F5, ENOTE); // 16
-    play_note(SPEAKER_PIN, F5, ENOTE);
-    play_note(SPEAKER_PIN, F5, ENOTE);
-    play_note(SPEAKER_PIN, G5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_F5, ENOTE); // 16
+    play_note(SPEAKER_PIN, NOTE_F5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_F5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, ENOTE);
     REST(EREST)
-    play_note(SPEAKER_PIN, C6, ENOTE);
-    play_note(SPEAKER_PIN, A5, ENOTE);
-    play_note(SPEAKER_PIN, C6, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C6, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C6, ENOTE);
     
-    play_note(SPEAKER_PIN, C6, ENOTE); // 17
-    play_note(SPEAKER_PIN, A5, ENOTE);
-    play_note(SPEAKER_PIN, C6, ENOTE);
-    play_note(SPEAKER_PIN, C6, ENOTE);
-    play_note(SPEAKER_PIN, A5, QNOTE);
-    play_note(SPEAKER_PIN, G5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C6, ENOTE); // 17
+    play_note(SPEAKER_PIN, NOTE_A5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C6, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C6, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, QNOTE);
 
-    play_note(SPEAKER_PIN, F5, ENOTE); // 18
-    play_note(SPEAKER_PIN, F5, ENOTE);
-    play_note(SPEAKER_PIN, F5, ENOTE);
-    play_note(SPEAKER_PIN, G5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_F5, ENOTE); // 18
+    play_note(SPEAKER_PIN, NOTE_F5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_F5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, ENOTE);
     REST(EREST)
-    play_note(SPEAKER_PIN, C6, ENOTE);
-    play_note(SPEAKER_PIN, A5, ENOTE);
-    play_note(SPEAKER_PIN, C6, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C6, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C6, ENOTE);
     
-    play_note(SPEAKER_PIN, C6, ENOTE); // 19
-    play_note(SPEAKER_PIN, A5, ENOTE);
-    play_note(SPEAKER_PIN, C6, ENOTE);
-    play_note(SPEAKER_PIN, C6, ENOTE);
-    play_note(SPEAKER_PIN, A5, QNOTE);
-    play_note(SPEAKER_PIN, G5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C6, ENOTE); // 19
+    play_note(SPEAKER_PIN, NOTE_A5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C6, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C6, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, QNOTE);
 
-    play_note(SPEAKER_PIN, F5, ENOTE); // 20
-    play_note(SPEAKER_PIN, F5, ENOTE);
-    play_note(SPEAKER_PIN, F5, ENOTE);
-    play_note(SPEAKER_PIN, G5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_F5, ENOTE); // 20
+    play_note(SPEAKER_PIN, NOTE_F5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_F5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, ENOTE);
     REST(EREST)
-    play_note(SPEAKER_PIN, C6, ENOTE);
-    play_note(SPEAKER_PIN, A5, ENOTE);
-    play_note(SPEAKER_PIN, C6, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C6, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C6, ENOTE);
     
-    play_note(SPEAKER_PIN, C6, ENOTE); // 21
-    play_note(SPEAKER_PIN, A5, ENOTE);
-    play_note(SPEAKER_PIN, C6, ENOTE);
-    play_note(SPEAKER_PIN, C6, ENOTE);
-    play_note(SPEAKER_PIN, A5, QNOTE);
-    play_note(SPEAKER_PIN, G5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C6, ENOTE); // 21
+    play_note(SPEAKER_PIN, NOTE_A5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C6, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C6, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, QNOTE);
 
-    play_note(SPEAKER_PIN, C6, WNOTE); // 22
+    play_note(SPEAKER_PIN, NOTE_C6, WNOTE); // 22
 
-    play_note(SPEAKER_PIN, C2, ENOTE); // 23.0
-    play_note(SPEAKER_PIN, G2, ENOTE);
-    play_note(SPEAKER_PIN, C3, ENOTE);
-    play_note(SPEAKER_PIN, C2, ENOTE); 
-    play_note(SPEAKER_PIN, G2, ENOTE);
-    play_note(SPEAKER_PIN, C3, DQNOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); // 23.0
+    play_note(SPEAKER_PIN, NOTE_G2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C3, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); 
+    play_note(SPEAKER_PIN, NOTE_G2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C3, DQNOTE);
 
-    play_note(SPEAKER_PIN, C2, ENOTE); // 23.1
-    play_note(SPEAKER_PIN, G2, ENOTE);
-    play_note(SPEAKER_PIN, A2, ENOTE);
-    play_note(SPEAKER_PIN, C2, ENOTE); 
-    play_note(SPEAKER_PIN, G2, ENOTE);
-    play_note(SPEAKER_PIN, A2, DQNOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); // 23.1
+    play_note(SPEAKER_PIN, NOTE_G2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); 
+    play_note(SPEAKER_PIN, NOTE_G2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A2, DQNOTE);
 
-    play_note(SPEAKER_PIN, C5, ENOTE); // 24
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, E5, QNOTE);
-    play_note(SPEAKER_PIN, E5, ENOTE);
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, C5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE); // 24
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, QNOTE);
 
-    play_note(SPEAKER_PIN, D5, DQNOTE); // 25
-    play_note(SPEAKER_PIN, C5, ENOTE + HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, DQNOTE); // 25
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE + HNOTE);
 
-    play_note(SPEAKER_PIN, C5, ENOTE); // 26
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, E5, QNOTE);
-    play_note(SPEAKER_PIN, E5, HNOTE + WNOTE); // 27
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE); // 26
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, HNOTE + WNOTE); // 27
 
-    play_note(SPEAKER_PIN, C5, ENOTE); // 28
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, E5, QNOTE);
-    play_note(SPEAKER_PIN, E5, ENOTE);
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, C5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE); // 28
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, QNOTE);
 
-    play_note(SPEAKER_PIN, D5, DQNOTE); // 29
-    play_note(SPEAKER_PIN, C5, ENOTE + HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, DQNOTE); // 29
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE + HNOTE);
 
-    play_note(SPEAKER_PIN, C5, DQNOTE); // 30
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, D5, HNOTE + WNOTE); // 31
+    play_note(SPEAKER_PIN, NOTE_C5, DQNOTE); // 30
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, HNOTE + WNOTE); // 31
 
-    play_note(SPEAKER_PIN, C5, DQNOTE); // 32
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, D5, HNOTE + WNOTE); // 33
+    play_note(SPEAKER_PIN, NOTE_C5, DQNOTE); // 32
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, HNOTE + WNOTE); // 33
 
-    play_note(SPEAKER_PIN, C2, ENOTE); // 34
-    play_note(SPEAKER_PIN, G2, ENOTE);
-    play_note(SPEAKER_PIN, C3, ENOTE);
-    play_note(SPEAKER_PIN, C2, ENOTE); 
-    play_note(SPEAKER_PIN, G2, ENOTE);
-    play_note(SPEAKER_PIN, C3, DQNOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); // 34
+    play_note(SPEAKER_PIN, NOTE_G2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C3, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); 
+    play_note(SPEAKER_PIN, NOTE_G2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C3, DQNOTE);
 
-    play_note(SPEAKER_PIN, C2, ENOTE); // 35
-    play_note(SPEAKER_PIN, G2, ENOTE);
-    play_note(SPEAKER_PIN, A2, ENOTE);
-    play_note(SPEAKER_PIN, C2, ENOTE); 
-    play_note(SPEAKER_PIN, G2, ENOTE);
-    play_note(SPEAKER_PIN, A2, DQNOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); // 35
+    play_note(SPEAKER_PIN, NOTE_G2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); 
+    play_note(SPEAKER_PIN, NOTE_G2, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A2, DQNOTE);
 
-    play_note(SPEAKER_PIN, C2, ENOTE); // 36
-    play_note(SPEAKER_PIN, C4, ENOTE);
-    play_note(SPEAKER_PIN, D4, ENOTE);
-    play_note(SPEAKER_PIN, E4, ENOTE);
-    play_note(SPEAKER_PIN, C4, ENOTE);
-    play_note(SPEAKER_PIN, D4, ENOTE);
-    play_note(SPEAKER_PIN, E4, ENOTE);
-    play_note(SPEAKER_PIN, C5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C2, ENOTE); // 36
+    play_note(SPEAKER_PIN, NOTE_C4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE);
 
-    play_note(SPEAKER_PIN, D5, ENOTE); // 37
-    play_note(SPEAKER_PIN, F5, DQNOTE);
-    play_note(SPEAKER_PIN, E5, QNOTE);
-    play_note(SPEAKER_PIN, D5, ENOTE);
-    play_note(SPEAKER_PIN, C5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE); // 37
+    play_note(SPEAKER_PIN, NOTE_F5, DQNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE);
 
-    play_note(SPEAKER_PIN, D5, DQNOTE); // 38
-    play_note(SPEAKER_PIN, C5, QNOTE + HNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, DQNOTE); // 38
+    play_note(SPEAKER_PIN, NOTE_C5, QNOTE + HNOTE);
 }
 
 
