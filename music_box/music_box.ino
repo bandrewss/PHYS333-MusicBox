@@ -2,7 +2,10 @@
 // PHYS333 Final Project: Music Box
 // 2018-4-10
 
+#include <Wire.h>
 #include <setjmp.h>
+#include <LiquidCrystal_I2C.h>
+
 #include "music_box.h"
 
 #define DEBOUNCE_TIME (200)
@@ -18,6 +21,8 @@ static volatile long time_pressed_bpm = 0;
 
 static volatile int selector = 0;
 
+static LiquidCrystal_I2C lcd(0x27, 16, 2);
+
 void setup() 
 {
     Serial.begin(9600);
@@ -30,7 +35,11 @@ void setup()
     pinMode(BPM_SEL_PIN, INPUT);
     attachInterrupt(digitalPinToInterrupt(BPM_SEL_PIN), cycle_bpm, RISING);
 
-    set_bpm(bpms[bpm_sel]);
+    lcd.init();
+    lcd.backlight();
+    lcd.clear();
+
+     set_bpm(bpms[bpm_sel]);
 }
 
 
@@ -73,15 +82,19 @@ void loop()
     switch(selector)
     {
         case 0:
+            set_lcd_song("C Scale");
             c_scale();
             break;
         case 1:
+            set_lcd_song("Happy Birthday");
             happy_birthday();
             break;
         case 2:
+            set_lcd_song("Star Wars Theme");
             star_wars();
             break;
         case 3:
+            set_lcd_song("Linus and Lucy");
             linus_and_lucy();
             break;
     }
@@ -102,6 +115,7 @@ void set_bpm(int bpm)
     //long whole_note_micro = 1000000;
 
     Serial.println(whole_note_micro);
+    set_lcd_bpm(bpm);
 
     // notes
     WNOTE = whole_note_micro;
@@ -122,6 +136,23 @@ void set_bpm(int bpm)
     QREST = QNOTE /1000;
     EREST = ENOTE /1000;
     SREST = SNOTE /1000;
+}
+
+
+// set the bpm the lcd is displaying
+void set_lcd_bpm(int bpm)
+{
+    lcd.setCursor(0, 1);
+    lcd.print("BPM: ");
+    lcd.print(bpm);
+}
+
+
+// set the song title that the lcd is displaying
+void set_lcd_song(char *song)
+{
+    lcd.setCursor(0, 0);
+    lcd.print(song);
 }
 
 
