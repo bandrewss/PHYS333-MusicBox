@@ -115,7 +115,7 @@
 
 // note lengths
 volatile int bpm_sel = 0;
-int const bpms[] = {60, 120, 240};
+int const bpms[] = {60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300};
 const int num_bpms = sizeof(bpms) / sizeof(int);
 
 long volatile note_dur[15];
