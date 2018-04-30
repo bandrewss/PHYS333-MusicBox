@@ -30,12 +30,9 @@ picking the song up where it was interrupted.
 Have a third knob to move songs up and down octaves. All notes would have to be
 recomputed or scaled (to be determined).
 
-#### Fall back:
-If interrupt handling proves too difficult, do all computation between songs.
-
 #### Hardware Requirements:
 * Arduino
-* Speaker
-* LCD Display + optional I2C
-* Components for high pass filter (to be determined)
+* Speaker or Passive Buzzer
+* LCD Display with I2C Interface Board
+* Components for High Pass Filter (optional)
 * etc wires
