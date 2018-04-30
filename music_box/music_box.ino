@@ -22,7 +22,7 @@ static jmp_buf note_jmp_buf;
 static volatile long time_pressed_sng = 0;
 static volatile long time_pressed_bpm = 0;
 
-static volatile int selector = 0;
+static volatile int selector = 4;
 
 static LiquidCrystal_I2C lcd(0x27, 16, 2);
 
@@ -103,6 +103,10 @@ void loop()
             set_lcd_song("Linus and Lucy");
             linus_and_lucy();
             break;
+        case 4:
+            set_lcd_song("Fugue in G Minor");
+            fugue();
+            break;
     }
 
     REST(WREST);
@@ -124,6 +128,7 @@ void set_bpm(int bpm)
     QNOTE = (WNOTE /4);
     ENOTE = (WNOTE /8);
     SNOTE = (WNOTE /16);
+    TNOTE = (WNOTE /32);
     
     DHNOTE = (HNOTE + QNOTE);
     DQNOTE = (QNOTE + ENOTE);
@@ -658,6 +663,323 @@ void linus_and_lucy()
 }
 
 
+// play bach's fugue in g minor
+void fugue()
+{
+/*
+    // 4/4
+    // G Minor
+    play_note(SPEAKER_PIN, NOTE_G4, QNOTE); // 1
+    play_note(SPEAKER_PIN, NOTE_D5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, DQNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    
+    play_note(SPEAKER_PIN, NOTE_G4, ENOTE); // 2
+    play_note(SPEAKER_PIN, NOTE_BF4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_FS4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, QNOTE);
+    
+    play_note(SPEAKER_PIN, NOTE_G4, ENOTE); // 3
+    play_note(SPEAKER_PIN, NOTE_D4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, ENOTE);
+
+    play_note(SPEAKER_PIN, NOTE_G4, ENOTE); // 4
+    play_note(SPEAKER_PIN, NOTE_D4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, SNOTE);
+
+    play_note(SPEAKER_PIN, NOTE_BF4, SNOTE); // 5
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_FS4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, SNOTE);
+
+    play_note(SPEAKER_PIN, NOTE_F5, SNOTE); // 6
+    play_note(SPEAKER_PIN, NOTE_E5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_F5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_CS5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, ENOTE);
+
+    play_note(SPEAKER_PIN, NOTE_F5, SNOTE); // 7
+    play_note(SPEAKER_PIN, NOTE_G5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_F5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, DENOTE);
+    play_note(SPEAKER_PIN, NOTE_F5, TNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, TNOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_BF5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_F5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, SNOTE);
+
+
+    play_note(SPEAKER_PIN, NOTE_F5, SNOTE); // 8
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_CS5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_CS5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+
+    play_note(SPEAKER_PIN, NOTE_F5, SNOTE); // 9
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_CS5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_CS5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_CS5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_CS5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE); // 10
+    play_note(SPEAKER_PIN, NOTE_F5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_F4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_F5, ENOTE);
+
+    play_note(SPEAKER_PIN, NOTE_EF5, ENOTE); // 11
+    play_note(SPEAKER_PIN, NOTE_A5, ENOTE);
+    REST(EREST)
+    play_note(SPEAKER_PIN, NOTE_EF5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, ENOTE);
+    REST(EREST);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+
+    play_note(SPEAKER_PIN, NOTE_C5, SNOTE); // 12
+    play_note(SPEAKER_PIN, NOTE_B4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_FS5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_F5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_F5, SNOTE);
+
+    play_note(SPEAKER_PIN, NOTE_G5, DQNOTE); // 13
+*/
+    REST(EREST) // ugly fix for overlapping melodies
+    play_note(SPEAKER_PIN, NOTE_D4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, SNOTE);
+    for(int i = 0; i < 8; ++i) // trill for a DENOTE
+    {
+        play_note(SPEAKER_PIN, NOTE_C5, TNOTE /2);
+        play_note(SPEAKER_PIN, NOTE_D5, TNOTE /2);
+    }
+    play_note(SPEAKER_PIN, NOTE_BF4, TNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, TNOTE);
+
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE); // 14
+    play_note(SPEAKER_PIN, NOTE_C5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_EF5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_FS4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE); // 15
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_FS4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_FS4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_FS4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE); // 16
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_FS4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_FS4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+
+    play_note(SPEAKER_PIN, NOTE_A3, ENOTE); // 17
+    play_note(SPEAKER_PIN, NOTE_D4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_CS5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, ENOTE);
+    
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE); // 18
+    play_note(SPEAKER_PIN, NOTE_BF5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_F5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_CS5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, QNOTE);
+    play_note(SPEAKER_PIN, NOTE_BF5, QNOTE);
+
+
+    play_note(SPEAKER_PIN, NOTE_E5, QNOTE); // 19
+    REST(EREST)
+    play_note(SPEAKER_PIN, NOTE_A5, ENOTE);
+    for(int i = 0; i < 32; ++i) // trill for whole note
+    {
+        play_note(SPEAKER_PIN, NOTE_A5, TNOTE /2);
+        play_note(SPEAKER_PIN, NOTE_BF5, TNOTE /2);
+    }
+    play_note(SPEAKER_PIN, NOTE_A5, TNOTE /2);
+
+    // 20, skipping long trill, trill into     21
+    play_note(SPEAKER_PIN, NOTE_G5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_BF5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_F5, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_E5, SNOTE);
+
+    play_note(SPEAKER_PIN, NOTE_F5, ENOTE); // 22
+    play_note(SPEAKER_PIN, NOTE_A4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_C5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_D5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_G5, ENOTE);
+    play_note(SPEAKER_PIN, NOTE_F5, ENOTE);
+    
+    
+
+    
+/*    
+    play_note(SPEAKER_PIN, NOTE_F4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_F4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    for(int i = 0; i < 8; ++i) // trill for a DENOTE
+    {
+        play_note(SPEAKER_PIN, NOTE_G4, TNOTE /2);
+        play_note(SPEAKER_PIN, NOTE_A4, TNOTE /2);
+    }
+    play_note(SPEAKER_PIN, NOTE_F4, TNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, TNOTE);
+    
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE); // 19
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_BF4, SNOTE);
+
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_F4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_E4, SNOTE);
+
+    play_note(SPEAKER_PIN, NOTE_F4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+
+    play_note(SPEAKER_PIN, NOTE_CS4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
+    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
+*/
+/*
+    
+*/
+
+    
+}
 
 
 

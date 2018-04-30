@@ -90,7 +90,7 @@
 #define  NOTE_AF5 NOTE_GS5
 #define  NOTE_A5  SCALER    ( 880 ))
 #define  NOTE_AS5  SCALER   ( 932 ))
-#define  NOTE_BF5  NOTE_AS4
+#define  NOTE_BF5  NOTE_AS5
 #define  NOTE_B5  SCALER    ( 988 ))
 
 
@@ -109,7 +109,7 @@
 #define  NOTE_AF6  NOTE_GS6
 #define  NOTE_A6  SCALER    ( 1760 ))
 #define  NOTE_AS6  SCALER   ( 1865 ))
-#define  NOTE_BF6  NOTE_AS4
+#define  NOTE_BF6  NOTE_AS6
 #define  NOTE_B6  SCALER    ( 1975 ))
 
 
@@ -118,27 +118,28 @@ volatile int bpm_sel = 0;
 int const bpms[] = {60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300};
 const int num_bpms = sizeof(bpms) / sizeof(int);
 
-long volatile note_dur[14];
+long volatile note_dur[15];
 
-#define  WNOTE  note_dur[0]
-#define  HNOTE  note_dur[1]
-#define  QNOTE  note_dur[2]
-#define  ENOTE  note_dur[3]
-#define  SNOTE  note_dur[4]
+#define WNOTE note_dur[0]
+#define HNOTE note_dur[1]
+#define QNOTE note_dur[2]
+#define ENOTE note_dur[3]
+#define SNOTE note_dur[4]
+#define TNOTE note_dur[5]
 
-#define  DHNOTE  note_dur[5]
-#define  DQNOTE  note_dur[6]
-#define  DENOTE  note_dur[7]
+#define  DHNOTE  note_dur[6]
+#define  DQNOTE  note_dur[7]
+#define  DENOTE  note_dur[8]
 
-#define  TRIPLT  note_dur[8]
+#define  TRIPLT  note_dur[9]
 
 // rests
 #define  REST(D) delay(D);
-#define  WREST  note_dur[9]
-#define  HREST  note_dur[10]
-#define  QREST  note_dur[11]
-#define  EREST  note_dur[12]
-#define  SREST  note_dur[13]
+#define  WREST  note_dur[10]
+#define  HREST  note_dur[11]
+#define  QREST  note_dur[12]
+#define  EREST  note_dur[13]
+#define  SREST  note_dur[14]
 
 
 
