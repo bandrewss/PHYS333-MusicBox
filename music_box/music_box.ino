@@ -22,7 +22,7 @@ static jmp_buf note_jmp_buf;
 static volatile long time_pressed_sng = 0;
 static volatile long time_pressed_bpm = 0;
 
-static volatile int selector = 4;
+static volatile int selector = 0;
 
 static LiquidCrystal_I2C lcd(0x27, 16, 2);
 
@@ -175,7 +175,10 @@ void play_note(int pin, long note, long dur)
     dur /= note * 2;
 
     if(setjmp(note_jmp_buf))
+    {
         set_lcd_bpm(bpms[bpm_sel]);
+        return;
+    }
 
     for(i = 0; i < dur; ++i)
     {
