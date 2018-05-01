@@ -941,42 +941,7 @@ void fugue()
     
 
     
-/*    
-    play_note(SPEAKER_PIN, NOTE_F4, SNOTE);
-    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
-    play_note(SPEAKER_PIN, NOTE_F4, SNOTE);
-    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
-    for(int i = 0; i < 8; ++i) // trill for a DENOTE
-    {
-        play_note(SPEAKER_PIN, NOTE_G4, TNOTE /2);
-        play_note(SPEAKER_PIN, NOTE_A4, TNOTE /2);
-    }
-    play_note(SPEAKER_PIN, NOTE_F4, TNOTE);
-    play_note(SPEAKER_PIN, NOTE_G4, TNOTE);
-    
-    play_note(SPEAKER_PIN, NOTE_A4, SNOTE); // 19
-    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
-    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
-    play_note(SPEAKER_PIN, NOTE_BF4, SNOTE);
 
-    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
-    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
-    play_note(SPEAKER_PIN, NOTE_F4, SNOTE);
-    play_note(SPEAKER_PIN, NOTE_E4, SNOTE);
-
-    play_note(SPEAKER_PIN, NOTE_F4, SNOTE);
-    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
-    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
-    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
-
-    play_note(SPEAKER_PIN, NOTE_CS4, SNOTE);
-    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
-    play_note(SPEAKER_PIN, NOTE_G4, SNOTE);
-    play_note(SPEAKER_PIN, NOTE_A4, SNOTE);
-*/
-/*
-    
-*/
 
     
 }
