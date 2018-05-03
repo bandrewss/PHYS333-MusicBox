@@ -56,7 +56,7 @@ void change_song()
     time_pressed_sng = millis();
 
     ++selector;
-    selector %= 4; // mod by the number of songs
+    selector %= 5; // mod by the number of songs
     
     longjmp(loop_jmp_buf , 1);
 }
@@ -669,7 +669,6 @@ void linus_and_lucy()
 // play bach's fugue in g minor
 void fugue()
 {
-/*
     // 4/4
     // G Minor
     play_note(SPEAKER_PIN, NOTE_G4, QNOTE); // 1
@@ -826,7 +825,7 @@ void fugue()
     play_note(SPEAKER_PIN, NOTE_F5, SNOTE);
 
     play_note(SPEAKER_PIN, NOTE_G5, DQNOTE); // 13
-*/
+
     REST(EREST) // ugly fix for overlapping melodies
     play_note(SPEAKER_PIN, NOTE_D4, ENOTE);
     play_note(SPEAKER_PIN, NOTE_G4, ENOTE);
